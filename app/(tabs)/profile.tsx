@@ -1,12 +1,12 @@
 import { View, Text, StyleSheet } from 'react-native';
 
-export default function HomeScreen() {
+export default function ProfileScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Exercises</Text>
-      <Text style={styles.subtitle}>Feature 3 - Coming Soon</Text>
+      <Text style={styles.title}>Profile</Text>
+      <Text style={styles.subtitle}>User profile and settings</Text>
       <Text style={styles.description}>
-        This screen will display a list of exercises fetched from the API.
+        This screen will display user information and settings including dark mode toggle.
       </Text>
     </View>
   );
@@ -34,3 +34,4 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
 });
+

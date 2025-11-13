@@ -1,12 +1,12 @@
 import { View, Text, StyleSheet } from 'react-native';
 
-export default function HomeScreen() {
+export default function FavouritesScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Exercises</Text>
-      <Text style={styles.subtitle}>Feature 3 - Coming Soon</Text>
+      <Text style={styles.title}>Favourites</Text>
+      <Text style={styles.subtitle}>Feature 6 - Coming Soon</Text>
       <Text style={styles.description}>
-        This screen will display a list of exercises fetched from the API.
+        This screen will display your favourite exercises.
       </Text>
     </View>
   );
@@ -34,3 +34,4 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
 });
+
