@@ -1,29 +1,191 @@
-import { View, Text, StyleSheet } from 'react-native';
+import { Button } from "@/components/Button";
+import { FormInput } from "@/components/FormInput";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { clearError, loginUser } from "@/store/slices/authSlice";
+import { LoginFormData, loginSchema } from "@/utils/validation";
+import { useRouter } from "expo-router";
+import { useFormik } from "formik";
+import { useEffect } from "react";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { Activity } from "react-native-feather";
 
 export default function LoginScreen() {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const { isLoading, error } = useAppSelector((state) => state.auth);
+
+  const formik = useFormik<LoginFormData>({
+    initialValues: {
+      username: "",
+      password: "",
+    },
+    validationSchema: loginSchema,
+    onSubmit: async (values) => {
+      const result = await dispatch(loginUser(values));
+      if (loginUser.fulfilled.match(result)) {
+        router.replace("/(tabs)");
+      } else {
+        Alert.alert("Login Failed", result.payload as string);
+      }
+    },
+  });
+
+  // Navigate to register screen
+  const handleNavigateToRegister = () => {
+    router.push("/(auth)/register");
+  };
+
+  // Clear error when component mounts
+  useEffect(() => {
+    if (error) {
+      dispatch(clearError());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Login Screen</Text>
-      <Text style={styles.subtitle}>Feature 2 - Coming Soon</Text>
-    </View>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.header}>
+          <Activity width={48} height={48} color="#0a7ea4" />
+          <Text style={styles.title}>Welcome Back</Text>
+          <Text style={styles.subtitle}>Sign in to continue</Text>
+        </View>
+
+        <View style={styles.form}>
+          <FormInput
+            label="Username"
+            value={formik.values.username}
+            onChangeText={formik.handleChange("username")}
+            onBlur={formik.handleBlur("username")}
+            error={formik.errors.username}
+            touched={formik.touched.username}
+            autoCapitalize="none"
+            autoCorrect={false}
+            placeholder="Enter your username"
+          />
+
+          <FormInput
+            label="Password"
+            value={formik.values.password}
+            onChangeText={formik.handleChange("password")}
+            onBlur={formik.handleBlur("password")}
+            error={formik.errors.password}
+            touched={formik.touched.password}
+            secureTextEntry
+            placeholder="Enter your password"
+          />
+
+          {error && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
+          <Button
+            title="Sign In"
+            onPress={() => formik.handleSubmit()}
+            loading={isLoading}
+            disabled={!formik.isValid || isLoading}
+            style={styles.button}
+          />
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Don&apos;t have an account? </Text>
+            <Text style={styles.linkText} onPress={handleNavigateToRegister}>
+              Sign Up
+            </Text>
+          </View>
+
+          <View style={styles.demoHint}>
+            <Text style={styles.demoHintText}>Demo credentials:</Text>
+            <Text style={styles.demoHintText}>Username: emilys</Text>
+            <Text style={styles.demoHintText}>Password: emilyspass</Text>
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#fff",
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
     padding: 20,
   },
+  header: {
+    alignItems: "center",
+    marginBottom: 40,
+  },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#333",
+    marginTop: 16,
+    marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
+  },
+  form: {
+    width: "100%",
+  },
+  button: {
+    marginTop: 8,
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 24,
+  },
+  footerText: {
+    fontSize: 14,
+    color: "#666",
+  },
+  linkText: {
+    fontSize: 14,
+    color: "#0a7ea4",
+    fontWeight: "600",
+  },
+  errorContainer: {
+    marginBottom: 16,
+    padding: 12,
+    backgroundColor: "#ffebee",
+    borderRadius: 8,
+  },
+  errorText: {
+    color: "#c62828",
+    fontSize: 14,
+  },
+  demoHint: {
+    marginTop: 24,
+    padding: 12,
+    backgroundColor: "#e8f5e9",
+    borderRadius: 8,
+  },
+  demoHintText: {
+    fontSize: 12,
+    color: "#2e7d32",
+    textAlign: "center",
   },
 });
-
