@@ -24,16 +24,23 @@ export default function RegisterScreen() {
     },
     validationSchema: registerSchema,
     onSubmit: async (values) => {
+      console.log('Register: Submitting form...');
       const { confirmPassword, ...registerData } = values;
       const result = await dispatch(registerUser(registerData));
       if (registerUser.fulfilled.match(result)) {
+        console.log('Register: Success! Navigating to tabs...');
         Alert.alert('Success', 'Account created successfully!', [
           {
             text: 'OK',
-            onPress: () => router.replace('/(tabs)'),
+            onPress: () => {
+              setTimeout(() => {
+                router.replace('/(tabs)');
+              }, 100);
+            },
           },
         ]);
       } else {
+        console.error('Register: Failed', result.payload);
         Alert.alert('Registration Failed', result.payload as string);
       }
     },

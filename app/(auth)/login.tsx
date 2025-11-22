@@ -31,10 +31,16 @@ export default function LoginScreen() {
     },
     validationSchema: loginSchema,
     onSubmit: async (values) => {
+      console.log('Login: Submitting form...');
       const result = await dispatch(loginUser(values));
       if (loginUser.fulfilled.match(result)) {
-        router.replace("/(tabs)");
+        console.log('Login: Success! Navigating to tabs...');
+        // Use setTimeout to ensure state is updated before navigation
+        setTimeout(() => {
+          router.replace("/(tabs)");
+        }, 100);
       } else {
+        console.error('Login: Failed', result.payload);
         Alert.alert("Login Failed", result.payload as string);
       }
     },
