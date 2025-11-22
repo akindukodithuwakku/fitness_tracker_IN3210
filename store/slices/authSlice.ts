@@ -25,6 +25,14 @@ export const loginUser = createAsyncThunk(
   async (credentials: { username: string; password: string }, { rejectWithValue }) => {
     try {
       const response = await authApi.login(credentials);
+      console.log('Login API response received:', JSON.stringify(response, null, 2));
+      
+      // Validate response has required fields
+      if (!response.token) {
+        console.error('No token in response:', response);
+        throw new Error('Login failed: No authentication token received');
+      }
+      
       const user: User = {
         id: response.id.toString(),
         username: response.username,
@@ -33,12 +41,17 @@ export const loginUser = createAsyncThunk(
         lastName: response.lastName,
       };
       
+      console.log('Attempting to save token and user data...');
+      
       // Save to storage
       await storage.saveAuthToken(response.token);
       await storage.saveUserData(user);
       
+      console.log('Successfully saved to storage');
+      
       return { user, token: response.token };
     } catch (error) {
+      console.error('Login thunk error:', error);
       return rejectWithValue((error as Error).message);
     }
   }

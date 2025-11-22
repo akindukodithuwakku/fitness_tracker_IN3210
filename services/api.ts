@@ -1,6 +1,7 @@
 import { Exercise, User } from '@/types';
 
 const API_BASE_URL = 'https://dummyjson.com';
+const TIMEOUT_MS = 10000; // 10 seconds
 
 // API Response types
 interface LoginResponse {
@@ -9,7 +10,8 @@ interface LoginResponse {
   email: string;
   firstName: string;
   lastName: string;
-  token: string;
+  accessToken: string; // DummyJSON uses 'accessToken' not 'token'
+  refreshToken?: string;
 }
 
 interface RegisterResponse {
@@ -18,26 +20,73 @@ interface RegisterResponse {
   email: string;
   firstName: string;
   lastName: string;
-  token: string;
+  token: string; // For registration, we generate our own token
+}
+
+// Helper function to handle fetch with timeout
+async function fetchWithTimeout(url: string, options: RequestInit, timeout = TIMEOUT_MS): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(id);
+    return response;
+  } catch (error) {
+    clearTimeout(id);
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        throw new Error('Request timeout. Please check your internet connection.');
+      }
+      // Provide more helpful error messages
+      if (error.message.includes('Network request failed')) {
+        throw new Error('Network error. Please check your internet connection and try again.');
+      }
+    }
+    throw error;
+  }
 }
 
 // Authentication API
 export const authApi = {
   async login(credentials: { username: string; password: string }): Promise<LoginResponse> {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(credentials),
-    });
+    try {
+      console.log('Attempting login with:', { username: credentials.username });
+      
+      const response = await fetchWithTimeout(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Login failed');
+      console.log('Login response status:', response.status);
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Login failed');
+      }
+
+      const data = await response.json();
+      console.log('Login successful, received data:', JSON.stringify(data, null, 2));
+      
+      // DummyJSON returns accessToken, not token
+      return {
+        ...data,
+        token: data.accessToken || data.token, // Support both formats
+      };
+    } catch (error) {
+      console.error('Login error:', error);
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('An unexpected error occurred during login');
     }
-
-    return response.json();
   },
 
   // Note: DummyJSON doesn't have a real register endpoint, so we'll simulate it
@@ -48,34 +97,48 @@ export const authApi = {
     firstName?: string;
     lastName?: string;
   }): Promise<RegisterResponse> {
-    // Simulating registration by using the add user endpoint
-    // In a real app, this would be a proper registration endpoint
-    const response = await fetch(`${API_BASE_URL}/users/add`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        username: userData.username,
-        email: userData.email,
-        firstName: userData.firstName || '',
-        lastName: userData.lastName || '',
-        password: userData.password,
-      }),
-    });
+    try {
+      console.log('Attempting registration with:', { username: userData.username, email: userData.email });
+      
+      // Simulating registration by using the add user endpoint
+      // In a real app, this would be a proper registration endpoint
+      const response = await fetchWithTimeout(`${API_BASE_URL}/users/add`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          username: userData.username,
+          email: userData.email,
+          firstName: userData.firstName || '',
+          lastName: userData.lastName || '',
+          password: userData.password,
+        }),
+      });
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Registration failed');
+      console.log('Registration response status:', response.status);
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Registration failed');
+      }
+
+      const data = await response.json();
+      console.log('Registration successful');
+      
+      // Generate a mock token since DummyJSON doesn't provide one for registration
+      return {
+        ...data,
+        token: `mock-token-${data.id}-${Date.now()}`,
+      };
+    } catch (error) {
+      console.error('Registration error:', error);
+      if (error instanceof Error) {
+        throw error;
+      }
+      throw new Error('An unexpected error occurred during registration');
     }
-
-    const data = await response.json();
-    
-    // Generate a mock token since DummyJSON doesn't provide one for registration
-    return {
-      ...data,
-      token: `mock-token-${data.id}-${Date.now()}`,
-    };
   },
 };
 

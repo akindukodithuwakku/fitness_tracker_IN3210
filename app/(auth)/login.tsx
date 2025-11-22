@@ -2,6 +2,7 @@ import { Button } from "@/components/Button";
 import { FormInput } from "@/components/FormInput";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { clearError, loginUser } from "@/store/slices/authSlice";
+import { testApiConnection } from "@/utils/apiTest";
 import { LoginFormData, loginSchema } from "@/utils/validation";
 import { useRouter } from "expo-router";
 import { useFormik } from "formik";
@@ -13,6 +14,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { Activity } from "react-native-feather";
@@ -41,6 +43,15 @@ export default function LoginScreen() {
   // Navigate to register screen
   const handleNavigateToRegister = () => {
     router.push("/(auth)/register");
+  };
+
+  // Test API connection
+  const handleTestConnection = async () => {
+    const result = await testApiConnection();
+    Alert.alert(
+      result.success ? "Connection Test Successful" : "Connection Test Failed",
+      result.message
+    );
   };
 
   // Clear error when component mounts
@@ -116,6 +127,13 @@ export default function LoginScreen() {
             <Text style={styles.demoHintText}>Username: emilys</Text>
             <Text style={styles.demoHintText}>Password: emilyspass</Text>
           </View>
+
+          <TouchableOpacity
+            style={styles.testButton}
+            onPress={handleTestConnection}
+          >
+            <Text style={styles.testButtonText}>Test API Connection</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -187,5 +205,19 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#2e7d32",
     textAlign: "center",
+  },
+  testButton: {
+    marginTop: 16,
+    padding: 12,
+    backgroundColor: "#f5f5f5",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+  testButtonText: {
+    fontSize: 14,
+    color: "#666",
+    textAlign: "center",
+    fontWeight: "500",
   },
 });
