@@ -11,10 +11,8 @@ export const storage = {
   // Auth
   async saveAuthToken(token: string): Promise<void> {
     if (!token || token === 'undefined' || token === 'null') {
-      console.error('Attempted to save invalid token:', token);
       throw new Error('Cannot save undefined or null token');
     }
-    console.log('Saving auth token:', token.substring(0, 20) + '...');
     await AsyncStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
   },
 
@@ -29,10 +27,8 @@ export const storage = {
   // User Data
   async saveUserData(user: unknown): Promise<void> {
     if (!user) {
-      console.error('Attempted to save invalid user data:', user);
       throw new Error('Cannot save undefined or null user data');
     }
-    console.log('Saving user data:', JSON.stringify(user));
     await AsyncStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(user));
   },
 

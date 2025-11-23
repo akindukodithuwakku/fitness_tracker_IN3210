@@ -8,11 +8,16 @@ import { removeFavourite, setFavourites } from '@/store/slices/favouritesSlice';
 import { storage } from '@/utils/storage';
 import { Exercise } from '@/types';
 import { ExerciseCard } from '@/components/ExerciseCard';
+import { ThemedView } from '@/components/themed-view';
+import { ThemedText } from '@/components/themed-text';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function FavouritesScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const favourites = useAppSelector((state) => state.favourites.items);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   // Load favourites from storage on mount
   useEffect(() => {
@@ -72,13 +77,13 @@ export default function FavouritesScreen() {
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
       <View style={styles.emptyIconContainer}>
-        <Heart width={64} height={64} color="#ddd" />
+        <Heart width={64} height={64} color={isDark ? '#444' : '#ddd'} />
       </View>
-      <Text style={styles.emptyTitle}>No Favourites Yet</Text>
-      <Text style={styles.emptyText}>
+      <ThemedText style={styles.emptyTitle}>No Favourites Yet</ThemedText>
+      <ThemedText style={styles.emptyText}>
         Start adding exercises to your favourites by tapping the heart icon on
         any exercise card.
-      </Text>
+      </ThemedText>
       <TouchableOpacity
         style={styles.exploreButton}
         onPress={() => router.push('/(tabs)')}>
@@ -88,34 +93,35 @@ export default function FavouritesScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <FlatList
-        data={favourites}
-        renderItem={renderExercise}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={
-          favourites.length === 0 ? styles.emptyListContainer : styles.listContainer
-        }
-        ListEmptyComponent={renderEmpty}
-        showsVerticalScrollIndicator={false}
-        ListHeaderComponent={
-          favourites.length > 0 ? (
-            <View style={styles.header}>
-              <Text style={styles.headerText}>
-                {favourites.length} {favourites.length === 1 ? 'favourite' : 'favourites'}
-              </Text>
-            </View>
-          ) : null
-        }
-      />
-    </SafeAreaView>
+    <ThemedView style={{ flex: 1 }}>
+      <SafeAreaView style={styles.container} edges={['bottom']}>
+        <FlatList
+          data={favourites}
+          renderItem={renderExercise}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={
+            favourites.length === 0 ? styles.emptyListContainer : styles.listContainer
+          }
+          ListEmptyComponent={renderEmpty}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            favourites.length > 0 ? (
+              <View style={[styles.header, isDark && styles.headerDark]}>
+                <ThemedText style={styles.headerText}>
+                  {favourites.length} {favourites.length === 1 ? 'favourite' : 'favourites'}
+                </ThemedText>
+              </View>
+            ) : null
+          }
+        />
+      </SafeAreaView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   header: {
     paddingHorizontal: 16,
@@ -123,10 +129,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     marginBottom: 8,
   },
+  headerDark: {
+    backgroundColor: '#1c1c1e',
+  },
   headerText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    opacity: 0.7,
   },
   listContainer: {
     paddingVertical: 8,
@@ -146,13 +155,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 12,
     textAlign: 'center',
   },
   emptyText: {
     fontSize: 16,
-    color: '#666',
+    opacity: 0.7,
     textAlign: 'center',
     lineHeight: 24,
     marginBottom: 32,

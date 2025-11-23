@@ -1,3 +1,4 @@
+import { useColorScheme } from "@/hooks/use-color-scheme";
 import { Exercise } from "@/types";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Activity, Heart } from "react-native-feather";
@@ -15,6 +16,9 @@ export function ExerciseCard({
   onFavouritePress,
   isFavourite,
 }: ExerciseCardProps) {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
+
   const getDifficultyColor = (difficulty?: string) => {
     switch (difficulty?.toLowerCase()) {
       case "beginner":
@@ -29,10 +33,20 @@ export function ExerciseCard({
   };
 
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity
+      style={[styles.card, isDark && styles.cardDark]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
       <View style={styles.cardHeader}>
-        <View style={styles.iconContainer}>
-          <Activity width={28} height={28} color="#0a7ea4" />
+        <View
+          style={[styles.iconContainer, isDark && styles.iconContainerDark]}
+        >
+          <Activity
+            width={28}
+            height={28}
+            color={isDark ? "#4fc3f7" : "#0a7ea4"}
+          />
         </View>
         <TouchableOpacity
           style={styles.favouriteButton}
@@ -42,27 +56,44 @@ export function ExerciseCard({
           <Heart
             width={24}
             height={24}
-            color={isFavourite ? "#f44336" : "#999"}
+            color={isFavourite ? "#f44336" : isDark ? "#777" : "#999"}
             fill={isFavourite ? "#f44336" : "transparent"}
           />
         </TouchableOpacity>
       </View>
 
       <View style={styles.cardContent}>
-        <Text style={styles.exerciseName} numberOfLines={2}>
+        <Text
+          style={[styles.exerciseName, isDark && styles.exerciseNameDark]}
+          numberOfLines={2}
+        >
           {exercise.name}
         </Text>
 
         <View style={styles.detailsRow}>
           <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>Type</Text>
-            <Text style={styles.detailValue} numberOfLines={1}>
+            <Text
+              style={[styles.detailLabel, isDark && styles.detailLabelDark]}
+            >
+              Type
+            </Text>
+            <Text
+              style={[styles.detailValue, isDark && styles.detailValueDark]}
+              numberOfLines={1}
+            >
               {exercise.type || "N/A"}
             </Text>
           </View>
           <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>Muscle</Text>
-            <Text style={styles.detailValue} numberOfLines={1}>
+            <Text
+              style={[styles.detailLabel, isDark && styles.detailLabelDark]}
+            >
+              Muscle
+            </Text>
+            <Text
+              style={[styles.detailValue, isDark && styles.detailValueDark]}
+              numberOfLines={1}
+            >
               {exercise.muscle || "N/A"}
             </Text>
           </View>
@@ -70,13 +101,24 @@ export function ExerciseCard({
 
         <View style={styles.detailsRow}>
           <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>Equipment</Text>
-            <Text style={styles.detailValue} numberOfLines={1}>
+            <Text
+              style={[styles.detailLabel, isDark && styles.detailLabelDark]}
+            >
+              Equipment
+            </Text>
+            <Text
+              style={[styles.detailValue, isDark && styles.detailValueDark]}
+              numberOfLines={1}
+            >
               {exercise.equipment || "N/A"}
             </Text>
           </View>
           <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>Difficulty</Text>
+            <Text
+              style={[styles.detailLabel, isDark && styles.detailLabelDark]}
+            >
+              Difficulty
+            </Text>
             <View
               style={[
                 styles.difficultyBadge,
@@ -107,6 +149,9 @@ const styles = StyleSheet.create({
     elevation: 3,
     overflow: "hidden",
   },
+  cardDark: {
+    backgroundColor: "#1c1c1e",
+  },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -122,6 +167,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  iconContainerDark: {
+    backgroundColor: "#1e3a4a",
+  },
   favouriteButton: {
     padding: 8,
   },
@@ -135,6 +183,9 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: 12,
     lineHeight: 24,
+  },
+  exerciseNameDark: {
+    color: "#fff",
   },
   detailsRow: {
     flexDirection: "row",
@@ -150,10 +201,16 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     fontWeight: "600",
   },
+  detailLabelDark: {
+    color: "#999",
+  },
   detailValue: {
     fontSize: 14,
     color: "#333",
     textTransform: "capitalize",
+  },
+  detailValueDark: {
+    color: "#ccc",
   },
   difficultyBadge: {
     paddingHorizontal: 10,

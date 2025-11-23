@@ -16,11 +16,16 @@ import { ExerciseCard } from '@/components/ExerciseCard';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { addFavourite, removeFavourite } from '@/store/slices/favouritesSlice';
 import { Filter } from 'react-native-feather';
+import { ThemedView } from '@/components/themed-view';
+import { ThemedText } from '@/components/themed-text';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function HomeScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const favourites = useAppSelector((state) => state.favourites.items);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
   
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -115,8 +120,8 @@ export default function HomeScreen() {
     if (isLoading) {
       return (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#0a7ea4" />
-          <Text style={styles.emptyText}>Loading exercises...</Text>
+          <ActivityIndicator size="large" color={isDark ? '#4fc3f7' : '#0a7ea4'} />
+          <ThemedText style={styles.emptyText}>Loading exercises...</ThemedText>
         </View>
       );
     }
@@ -136,7 +141,7 @@ export default function HomeScreen() {
 
     return (
       <View style={styles.centerContainer}>
-        <Text style={styles.emptyText}>No exercises found</Text>
+        <ThemedText style={styles.emptyText}>No exercises found</ThemedText>
         <TouchableOpacity
           style={styles.retryButton}
           onPress={() => fetchExercises()}>
@@ -147,10 +152,10 @@ export default function HomeScreen() {
   };
 
   const renderHeader = () => (
-    <View style={styles.header}>
+    <View style={[styles.header, isDark && styles.headerDark]}>
       <View style={styles.filterHeader}>
-        <Filter width={20} height={20} color="#666" />
-        <Text style={styles.filterTitle}>Filter by Muscle Group</Text>
+        <Filter width={20} height={20} color={isDark ? '#999' : '#666'} />
+        <ThemedText style={styles.filterTitle}>Filter by Muscle Group</ThemedText>
       </View>
       <FlatList
         horizontal
@@ -160,12 +165,14 @@ export default function HomeScreen() {
           <TouchableOpacity
             style={[
               styles.filterButton,
+              isDark && styles.filterButtonDark,
               selectedMuscle === item.value && styles.filterButtonActive,
             ]}
             onPress={() => setSelectedMuscle(item.value)}>
             <Text
               style={[
                 styles.filterButtonText,
+                isDark && styles.filterButtonTextDark,
                 selectedMuscle === item.value && styles.filterButtonTextActive,
               ]}>
               {item.label}
@@ -179,7 +186,7 @@ export default function HomeScreen() {
   );
 
   return (
-    <View style={styles.container}>
+    <ThemedView style={styles.container}>
       <FlatList
         data={exercises}
         renderItem={renderExercise}
@@ -192,21 +199,20 @@ export default function HomeScreen() {
           <RefreshControl
             refreshing={isRefreshing}
             onRefresh={handleRefresh}
-            tintColor="#0a7ea4"
-            colors={['#0a7ea4']}
+            tintColor={isDark ? '#4fc3f7' : '#0a7ea4'}
+            colors={[isDark ? '#4fc3f7' : '#0a7ea4']}
           />
         }
         ListEmptyComponent={renderEmpty}
         showsVerticalScrollIndicator={false}
       />
-    </View>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   header: {
     backgroundColor: '#fff',
@@ -221,6 +227,9 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
+  headerDark: {
+    backgroundColor: '#1c1c1e',
+  },
   filterHeader: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -231,7 +240,7 @@ const styles = StyleSheet.create({
   filterTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#666',
+    opacity: 0.7,
   },
   filterList: {
     paddingHorizontal: 16,
@@ -244,6 +253,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f0f0',
     marginRight: 8,
   },
+  filterButtonDark: {
+    backgroundColor: '#2c2c2e',
+  },
   filterButtonActive: {
     backgroundColor: '#0a7ea4',
   },
@@ -251,6 +263,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#666',
+  },
+  filterButtonTextDark: {
+    color: '#999',
   },
   filterButtonTextActive: {
     color: '#fff',
@@ -270,7 +285,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#999',
+    opacity: 0.6,
     marginTop: 16,
     textAlign: 'center',
   },

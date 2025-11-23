@@ -3,12 +3,18 @@ import { useRouter } from 'expo-router';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { logoutUser } from '@/store/slices/authSlice';
 import { Button } from '@/components/Button';
+import { DarkModeToggle } from '@/components/DarkModeToggle';
+import { ThemedView } from '@/components/themed-view';
+import { ThemedText } from '@/components/themed-text';
 import { User } from 'react-native-feather';
+import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
   const handleLogout = () => {
     Alert.alert(
@@ -36,61 +42,62 @@ export default function ProfileScreen() {
     : user?.username || 'User';
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <View style={styles.avatarContainer}>
-          <User width={48} height={48} color="#0a7ea4" />
+    <ThemedView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content}>
+        <View style={styles.header}>
+          <View style={[styles.avatarContainer, isDark && styles.avatarContainerDark]}>
+            <User width={48} height={48} color={isDark ? '#4fc3f7' : '#0a7ea4'} />
+          </View>
+          <ThemedText style={styles.name}>{displayName}</ThemedText>
+          {user?.email && <ThemedText style={styles.email}>{user.email}</ThemedText>}
         </View>
-        <Text style={styles.name}>{displayName}</Text>
-        {user?.email && <Text style={styles.email}>{user.email}</Text>}
-      </View>
 
-      <View style={styles.section}>
-        <View style={styles.infoRow}>
-          <Text style={styles.label}>Username</Text>
-          <Text style={styles.value}>{user?.username || 'N/A'}</Text>
+        <View style={styles.section}>
+          <View style={[styles.infoRow, isDark && styles.infoRowDark]}>
+            <ThemedText style={styles.label}>Username</ThemedText>
+            <ThemedText style={styles.value}>{user?.username || 'N/A'}</ThemedText>
+          </View>
+          {user?.firstName && (
+            <View style={[styles.infoRow, isDark && styles.infoRowDark]}>
+              <ThemedText style={styles.label}>First Name</ThemedText>
+              <ThemedText style={styles.value}>{user.firstName}</ThemedText>
+            </View>
+          )}
+          {user?.lastName && (
+            <View style={[styles.infoRow, isDark && styles.infoRowDark]}>
+              <ThemedText style={styles.label}>Last Name</ThemedText>
+              <ThemedText style={styles.value}>{user.lastName}</ThemedText>
+            </View>
+          )}
+          {user?.email && (
+            <View style={[styles.infoRow, isDark && styles.infoRowDark]}>
+              <ThemedText style={styles.label}>Email</ThemedText>
+              <ThemedText style={styles.value}>{user.email}</ThemedText>
+            </View>
+          )}
         </View>
-        {user?.firstName && (
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>First Name</Text>
-            <Text style={styles.value}>{user.firstName}</Text>
-          </View>
-        )}
-        {user?.lastName && (
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Last Name</Text>
-            <Text style={styles.value}>{user.lastName}</Text>
-          </View>
-        )}
-        {user?.email && (
-          <View style={styles.infoRow}>
-            <Text style={styles.label}>Email</Text>
-            <Text style={styles.value}>{user.email}</Text>
-          </View>
-        )}
-      </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Settings</Text>
-        <Text style={styles.comingSoon}>Dark mode toggle - Coming in Feature 8</Text>
-      </View>
+        <View style={styles.section}>
+          <ThemedText style={styles.sectionTitle}>Settings</ThemedText>
+          <DarkModeToggle />
+        </View>
 
-      <View style={styles.logoutSection}>
-        <Button
-          title="Logout"
-          onPress={handleLogout}
-          variant="outline"
-          style={styles.logoutButton}
-        />
-      </View>
-    </ScrollView>
+        <View style={styles.logoutSection}>
+          <Button
+            title="Logout"
+            onPress={handleLogout}
+            variant="outline"
+            style={styles.logoutButton}
+          />
+        </View>
+      </ScrollView>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   content: {
     padding: 20,
@@ -108,15 +115,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
+  avatarContainerDark: {
+    backgroundColor: '#1e3a4a',
+  },
   name: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 4,
   },
   email: {
     fontSize: 16,
-    color: '#666',
+    opacity: 0.7,
   },
   section: {
     marginBottom: 24,
@@ -124,7 +133,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 16,
   },
   infoRow: {
@@ -135,19 +143,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
   },
+  infoRowDark: {
+    borderBottomColor: '#3a3a3c',
+  },
   label: {
     fontSize: 16,
-    color: '#666',
+    opacity: 0.7,
   },
   value: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#333',
-  },
-  comingSoon: {
-    fontSize: 14,
-    color: '#999',
-    fontStyle: 'italic',
   },
   logoutSection: {
     marginTop: 32,
