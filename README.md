@@ -26,14 +26,6 @@ FitBuddy is a modern fitness tracking application designed to help users discove
 
 ---
 
-## 🎥 Demo
-
-**Assignment Submission includes:**
-- Screenshots of all key screens
-- Demo video (≤2 minutes)
-- GitHub repository link
-
----
 
 ## 🚀 Features
 

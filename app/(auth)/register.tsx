@@ -1,12 +1,20 @@
-import { View, Text, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
-import { useFormik } from 'formik';
-import { useRouter } from 'expo-router';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { registerUser } from '@/store/slices/authSlice';
-import { registerSchema, RegisterFormData } from '@/utils/validation';
-import { FormInput } from '@/components/FormInput';
-import { Button } from '@/components/Button';
-import { Activity } from 'react-native-feather';
+import { Button } from "@/components/Button";
+import { FormInput } from "@/components/FormInput";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { registerUser } from "@/store/slices/authSlice";
+import { RegisterFormData, registerSchema } from "@/utils/validation";
+import { useRouter } from "expo-router";
+import { useFormik } from "formik";
+import {
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { Activity } from "react-native-feather";
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -15,49 +23,48 @@ export default function RegisterScreen() {
 
   const formik = useFormik<RegisterFormData>({
     initialValues: {
-      username: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-      firstName: '',
-      lastName: '',
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      firstName: "",
+      lastName: "",
     },
     validationSchema: registerSchema,
     onSubmit: async (values) => {
-      console.log('Register: Submitting form...');
       const { confirmPassword, ...registerData } = values;
       const result = await dispatch(registerUser(registerData));
       if (registerUser.fulfilled.match(result)) {
-        console.log('Register: Success! Navigating to tabs...');
-        Alert.alert('Success', 'Account created successfully!', [
+        Alert.alert("Success", "Account created successfully!", [
           {
-            text: 'OK',
+            text: "OK",
             onPress: () => {
               setTimeout(() => {
-                router.replace('/(tabs)');
+                router.replace("/(tabs)");
               }, 100);
             },
           },
         ]);
       } else {
-        console.error('Register: Failed', result.payload);
-        Alert.alert('Registration Failed', result.payload as string);
+        Alert.alert("Registration Failed", result.payload as string);
       }
     },
   });
 
   // Navigate to login screen
   const handleNavigateToLogin = () => {
-    router.push('/(auth)/login');
+    router.push("/(auth)/login");
   };
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled">
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.header}>
           <Activity width={48} height={48} color="#0a7ea4" />
           <Text style={styles.title}>Create Account</Text>
@@ -68,8 +75,8 @@ export default function RegisterScreen() {
           <FormInput
             label="Username"
             value={formik.values.username}
-            onChangeText={formik.handleChange('username')}
-            onBlur={formik.handleBlur('username')}
+            onChangeText={formik.handleChange("username")}
+            onBlur={formik.handleBlur("username")}
             error={formik.errors.username}
             touched={formik.touched.username}
             autoCapitalize="none"
@@ -80,8 +87,8 @@ export default function RegisterScreen() {
           <FormInput
             label="Email"
             value={formik.values.email}
-            onChangeText={formik.handleChange('email')}
-            onBlur={formik.handleBlur('email')}
+            onChangeText={formik.handleChange("email")}
+            onBlur={formik.handleBlur("email")}
             error={formik.errors.email}
             touched={formik.touched.email}
             autoCapitalize="none"
@@ -93,8 +100,8 @@ export default function RegisterScreen() {
           <FormInput
             label="First Name (Optional)"
             value={formik.values.firstName}
-            onChangeText={formik.handleChange('firstName')}
-            onBlur={formik.handleBlur('firstName')}
+            onChangeText={formik.handleChange("firstName")}
+            onBlur={formik.handleBlur("firstName")}
             error={formik.errors.firstName}
             touched={formik.touched.firstName}
             placeholder="Enter your first name"
@@ -103,8 +110,8 @@ export default function RegisterScreen() {
           <FormInput
             label="Last Name (Optional)"
             value={formik.values.lastName}
-            onChangeText={formik.handleChange('lastName')}
-            onBlur={formik.handleBlur('lastName')}
+            onChangeText={formik.handleChange("lastName")}
+            onBlur={formik.handleBlur("lastName")}
             error={formik.errors.lastName}
             touched={formik.touched.lastName}
             placeholder="Enter your last name"
@@ -113,8 +120,8 @@ export default function RegisterScreen() {
           <FormInput
             label="Password"
             value={formik.values.password}
-            onChangeText={formik.handleChange('password')}
-            onBlur={formik.handleBlur('password')}
+            onChangeText={formik.handleChange("password")}
+            onBlur={formik.handleBlur("password")}
             error={formik.errors.password}
             touched={formik.touched.password}
             secureTextEntry
@@ -124,8 +131,8 @@ export default function RegisterScreen() {
           <FormInput
             label="Confirm Password"
             value={formik.values.confirmPassword}
-            onChangeText={formik.handleChange('confirmPassword')}
-            onBlur={formik.handleBlur('confirmPassword')}
+            onChangeText={formik.handleChange("confirmPassword")}
+            onBlur={formik.handleBlur("confirmPassword")}
             error={formik.errors.confirmPassword}
             touched={formik.touched.confirmPassword}
             secureTextEntry
@@ -161,58 +168,57 @@ export default function RegisterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
   },
   scrollContent: {
     flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
     padding: 20,
     paddingVertical: 40,
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 32,
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginTop: 16,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
   },
   form: {
-    width: '100%',
+    width: "100%",
   },
   button: {
     marginTop: 8,
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     marginTop: 24,
   },
   footerText: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   linkText: {
     fontSize: 14,
-    color: '#0a7ea4',
-    fontWeight: '600',
+    color: "#0a7ea4",
+    fontWeight: "600",
   },
   errorContainer: {
     marginBottom: 16,
     padding: 12,
-    backgroundColor: '#ffebee',
+    backgroundColor: "#ffebee",
     borderRadius: 8,
   },
   errorText: {
-    color: '#c62828',
+    color: "#c62828",
     fontSize: 14,
   },
 });
-

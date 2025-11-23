@@ -1,23 +1,29 @@
-import { useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Heart } from 'react-native-feather';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { removeFavourite, setFavourites } from '@/store/slices/favouritesSlice';
-import { storage } from '@/utils/storage';
-import { Exercise } from '@/types';
-import { ExerciseCard } from '@/components/ExerciseCard';
-import { ThemedView } from '@/components/themed-view';
-import { ThemedText } from '@/components/themed-text';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { ExerciseCard } from "@/components/ExerciseCard";
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { removeFavourite, setFavourites } from "@/store/slices/favouritesSlice";
+import { Exercise } from "@/types";
+import { storage } from "@/utils/storage";
+import { useRouter } from "expo-router";
+import { useCallback, useEffect } from "react";
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { Heart } from "react-native-feather";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function FavouritesScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const favourites = useAppSelector((state) => state.favourites.items);
   const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const isDark = colorScheme === "dark";
 
   // Load favourites from storage on mount
   useEffect(() => {
@@ -27,8 +33,8 @@ export default function FavouritesScreen() {
         if (storedFavourites.length > 0) {
           dispatch(setFavourites(storedFavourites));
         }
-      } catch (error) {
-        console.error('Error loading favourites:', error);
+      } catch {
+        // Silently fail - favourites will be empty
       }
     };
 
@@ -40,8 +46,8 @@ export default function FavouritesScreen() {
     const saveFavourites = async () => {
       try {
         await storage.saveFavourites(favourites);
-      } catch (error) {
-        console.error('Error saving favourites:', error);
+      } catch {
+        // Silently fail - will try again on next change
       }
     };
 
@@ -77,7 +83,7 @@ export default function FavouritesScreen() {
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
       <View style={styles.emptyIconContainer}>
-        <Heart width={64} height={64} color={isDark ? '#444' : '#ddd'} />
+        <Heart width={64} height={64} color={isDark ? "#444" : "#ddd"} />
       </View>
       <ThemedText style={styles.emptyTitle}>No Favourites Yet</ThemedText>
       <ThemedText style={styles.emptyText}>
@@ -86,7 +92,8 @@ export default function FavouritesScreen() {
       </ThemedText>
       <TouchableOpacity
         style={styles.exploreButton}
-        onPress={() => router.push('/(tabs)')}>
+        onPress={() => router.push("/(tabs)")}
+      >
         <Text style={styles.exploreButtonText}>Explore Exercises</Text>
       </TouchableOpacity>
     </View>
@@ -94,13 +101,15 @@ export default function FavouritesScreen() {
 
   return (
     <ThemedView style={{ flex: 1 }}>
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={styles.container} edges={["bottom"]}>
         <FlatList
           data={favourites}
           renderItem={renderExercise}
           keyExtractor={(item) => item.id}
           contentContainerStyle={
-            favourites.length === 0 ? styles.emptyListContainer : styles.listContainer
+            favourites.length === 0
+              ? styles.emptyListContainer
+              : styles.listContainer
           }
           ListEmptyComponent={renderEmpty}
           showsVerticalScrollIndicator={false}
@@ -108,7 +117,8 @@ export default function FavouritesScreen() {
             favourites.length > 0 ? (
               <View style={[styles.header, isDark && styles.headerDark]}>
                 <ThemedText style={styles.headerText}>
-                  {favourites.length} {favourites.length === 1 ? 'favourite' : 'favourites'}
+                  {favourites.length}{" "}
+                  {favourites.length === 1 ? "favourite" : "favourites"}
                 </ThemedText>
               </View>
             ) : null
@@ -126,15 +136,15 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     marginBottom: 8,
   },
   headerDark: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: "#1c1c1e",
   },
   headerText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
     opacity: 0.7,
   },
   listContainer: {
@@ -145,8 +155,8 @@ const styles = StyleSheet.create({
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 40,
   },
   emptyIconContainer: {
@@ -154,27 +164,26 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 12,
-    textAlign: 'center',
+    textAlign: "center",
   },
   emptyText: {
     fontSize: 16,
     opacity: 0.7,
-    textAlign: 'center',
+    textAlign: "center",
     lineHeight: 24,
     marginBottom: 32,
   },
   exploreButton: {
     paddingHorizontal: 32,
     paddingVertical: 14,
-    backgroundColor: '#0a7ea4',
+    backgroundColor: "#0a7ea4",
     borderRadius: 8,
   },
   exploreButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
-

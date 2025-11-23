@@ -1,25 +1,18 @@
-import { useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useAppSelector } from '@/store/hooks';
+import { useAppSelector } from "@/store/hooks";
+import { useRouter } from "expo-router";
+import { useEffect } from "react";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 
 export default function Index() {
   const router = useRouter();
   const { isAuthenticated, user } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
-    console.log('Index: Checking authentication status...');
-    console.log('Index: Is authenticated:', isAuthenticated);
-    console.log('Index: User:', user);
-
-    // Small delay to ensure Redux state is loaded
     const timer = setTimeout(() => {
       if (isAuthenticated) {
-        console.log('Index: Redirecting to tabs');
-        router.replace('/(tabs)');
+        router.replace("/(tabs)");
       } else {
-        console.log('Index: Redirecting to login');
-        router.replace('/(auth)/login');
+        router.replace("/(auth)/login");
       }
     }, 100);
 
@@ -36,9 +29,8 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
   },
 });
-
