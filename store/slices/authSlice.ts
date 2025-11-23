@@ -1,7 +1,7 @@
-import { createSlice, PayloadAction, createAsyncThunk } from '@reduxjs/toolkit';
-import { User } from '@/types';
-import { authApi } from '@/services/api';
-import { storage } from '@/utils/storage';
+import { authApi } from "@/services/api";
+import { User } from "@/types";
+import { storage } from "@/utils/storage";
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 
 interface AuthState {
   user: User | null;
@@ -21,15 +21,43 @@ const initialState: AuthState = {
 
 // Async thunks
 export const loginUser = createAsyncThunk(
-  'auth/login',
-  async (credentials: { username: string; password: string }, { rejectWithValue }) => {
+  "auth/login",
+  async (
+    credentials: { username: string; password: string },
+    { rejectWithValue }
+  ) => {
     try {
-      const response = await authApi.login(credentials);
-      
-      if (!response.token) {
-        throw new Error('Login failed: No authentication token received');
+      // First check if user is locally registered
+      const localUser = await storage.findRegisteredUser(
+        credentials.username,
+        credentials.password
+      );
+
+      if (localUser) {
+        // Login with local user
+        const user: User = {
+          id: localUser.id,
+          username: localUser.username,
+          email: localUser.email,
+          firstName: localUser.firstName || "",
+          lastName: localUser.lastName || "",
+        };
+
+        const token = `local-token-${localUser.id}-${Date.now()}`;
+        await storage.saveAuthToken(token);
+        await storage.saveUserData(user);
+
+        return { user, token };
       }
-      
+
+      // Try DummyJSON API for test credentials
+      const response = await authApi.login(credentials);
+
+      const token = response.accessToken;
+      if (!token) {
+        throw new Error("Login failed: No authentication token received");
+      }
+
       const user: User = {
         id: response.id.toString(),
         username: response.username,
@@ -37,11 +65,11 @@ export const loginUser = createAsyncThunk(
         firstName: response.firstName,
         lastName: response.lastName,
       };
-      
-      await storage.saveAuthToken(response.token);
+
+      await storage.saveAuthToken(token);
       await storage.saveUserData(user);
-      
-      return { user, token: response.token };
+
+      return { user, token };
     } catch (error) {
       return rejectWithValue((error as Error).message);
     }
@@ -49,23 +77,55 @@ export const loginUser = createAsyncThunk(
 );
 
 export const registerUser = createAsyncThunk(
-  'auth/register',
-  async (userData: { username: string; email: string; password: string; firstName?: string; lastName?: string }, { rejectWithValue }) => {
+  "auth/register",
+  async (
+    userData: {
+      username: string;
+      email: string;
+      password: string;
+      firstName?: string;
+      lastName?: string;
+    },
+    { rejectWithValue }
+  ) => {
     try {
-      const response = await authApi.register(userData);
-      const user: User = {
-        id: response.id.toString(),
-        username: response.username,
-        email: response.email,
-        firstName: response.firstName,
-        lastName: response.lastName,
+      // Check if username already exists locally
+      const existingUsers = await storage.getRegisteredUsers();
+      if (
+        existingUsers.some(
+          (u) => u.username === userData.username || u.email === userData.email
+        )
+      ) {
+        throw new Error("Username or email already exists");
+      }
+
+      // Create local user
+      const userId = `local-${Date.now()}`;
+      const localUser = {
+        id: userId,
+        username: userData.username,
+        email: userData.email,
+        password: userData.password,
+        firstName: userData.firstName || "",
+        lastName: userData.lastName || "",
       };
-      
-      // Save to storage
-      await storage.saveAuthToken(response.token);
+
+      // Save to local storage
+      await storage.saveRegisteredUser(localUser);
+
+      const user: User = {
+        id: userId,
+        username: localUser.username,
+        email: localUser.email,
+        firstName: localUser.firstName,
+        lastName: localUser.lastName,
+      };
+
+      const token = `local-token-${userId}-${Date.now()}`;
+      await storage.saveAuthToken(token);
       await storage.saveUserData(user);
-      
-      return { user, token: response.token };
+
+      return { user, token };
     } catch (error) {
       return rejectWithValue((error as Error).message);
     }
@@ -73,29 +133,26 @@ export const registerUser = createAsyncThunk(
 );
 
 export const loadUserFromStorage = createAsyncThunk(
-  'auth/loadUser',
+  "auth/loadUser",
   async () => {
     const token = await storage.getAuthToken();
     const user = await storage.getUserData<User>();
-    
+
     if (token && user) {
       return { user, token };
     }
-    
+
     return null;
   }
 );
 
-export const logoutUser = createAsyncThunk(
-  'auth/logout',
-  async () => {
-    await storage.removeAuthToken();
-    await storage.removeUserData();
-  }
-);
+export const logoutUser = createAsyncThunk("auth/logout", async () => {
+  await storage.removeAuthToken();
+  await storage.removeUserData();
+});
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState,
   reducers: {
     clearError: (state) => {
@@ -121,7 +178,7 @@ const authSlice = createSlice({
         state.error = action.payload as string;
         state.isAuthenticated = false;
       });
-    
+
     // Register
     builder
       .addCase(registerUser.pending, (state) => {
@@ -140,28 +197,25 @@ const authSlice = createSlice({
         state.error = action.payload as string;
         state.isAuthenticated = false;
       });
-    
+
     // Load user from storage
-    builder
-      .addCase(loadUserFromStorage.fulfilled, (state, action) => {
-        if (action.payload) {
-          state.user = action.payload.user;
-          state.token = action.payload.token;
-          state.isAuthenticated = true;
-        }
-      });
-    
+    builder.addCase(loadUserFromStorage.fulfilled, (state, action) => {
+      if (action.payload) {
+        state.user = action.payload.user;
+        state.token = action.payload.token;
+        state.isAuthenticated = true;
+      }
+    });
+
     // Logout
-    builder
-      .addCase(logoutUser.fulfilled, (state) => {
-        state.user = null;
-        state.token = null;
-        state.isAuthenticated = false;
-        state.error = null;
-      });
+    builder.addCase(logoutUser.fulfilled, (state) => {
+      state.user = null;
+      state.token = null;
+      state.isAuthenticated = false;
+      state.error = null;
+    });
   },
 });
 
 export const { clearError } = authSlice.actions;
 export default authSlice.reducer;
-
